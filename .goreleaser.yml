@@ -1,0 +1,44 @@
+version: 2
+
+# Build customization
+builds:
+  - main: ./main.go
+    binary: q
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=0
+
+# Archive customization
+archives:
+  - name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}.zip'
+    formats: [zip]
+    # files: []  # No extra files, just the binary
+
+# Checksum customization
+checksum:
+  name_template: 'SHA256SUMS'
+  algorithm: sha256
+
+# Release customization
+release:
+  github:
+    owner: atharva-again
+    name: q
+  draft: false
+  prerelease: auto  # Auto-detect from tag (e.g., v1.0.0-beta)
+
+# Optional: Changelog generation
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

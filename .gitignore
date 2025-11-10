@@ -1,0 +1,21 @@
+# binaries
+
+q-darwin-amd64.zip
+q-darwin-arm64.zip
+q-linux-amd64.zip
+q-linux-arm64.zip
+q-windows-amd64.zip
+q-windows-arm64.zip
+
+# GoReleaser
+dist/
+SHA256SUMS
+
+# Downloads
+*.tar.gz
+
+# manpages
+manpages/
+
+# completions
+completions/

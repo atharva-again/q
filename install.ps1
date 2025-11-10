@@ -34,6 +34,40 @@ try {
     exit 1
 }
 
+# Download checksums
+$checksumUrl = "https://github.com/$RepoOwner/$RepoName/releases/download/$ReleaseTag/SHA256SUMS"
+$checksumFile = "SHA256SUMS"
+Write-Host "Downloading checksums from $checksumUrl..."
+try {
+    Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumFile
+} catch {
+    Write-Host "Failed to download checksums: $_"
+    exit 1
+}
+
+# Verify checksum
+Write-Host "Verifying checksum for $zipName..."
+$expectedHash = $null
+Get-Content $checksumFile | ForEach-Object {
+    if ($_ -match "^(\w+)\s+$zipName$") {
+        $expectedHash = $matches[1]
+    }
+}
+if ($expectedHash) {
+    $actualHash = (Get-FileHash -Path $zipName -Algorithm SHA256).Hash
+    if ($actualHash -ne $expectedHash) {
+        Write-Host "Checksum verification failed! Expected: $expectedHash, Got: $actualHash"
+        exit 1
+    } else {
+        Write-Host "Checksum verification passed."
+    }
+} else {
+    Write-Host "Checksum for $zipName not found in $checksumFile. Skipping verification."
+}
+
+# Cleanup checksum file
+Remove-Item $checksumFile -Force
+
 # Unzip
 Write-Host "Extracting $zipName..."
 try {
@@ -65,6 +99,7 @@ if ($userPath -notlike "*$installDir*") {
 Remove-Item $zipName -Force
 
 Write-Host "Installed q to $binaryPath"
+Write-Host "For any issues, suggestions, or feature requests, please check https://github.com/$RepoOwner/$RepoName"
 Write-Host "Installation complete! Starting setup..."
 
 # Run setup

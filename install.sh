@@ -56,6 +56,33 @@ else
     exit 1
 fi
 
+# Download checksums
+CHECKSUM_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${RELEASE_TAG}/SHA256SUMS"
+CHECKSUM_FILE="SHA256SUMS"
+echo "Downloading checksums from $CHECKSUM_URL..."
+if command -v curl >/dev/null 2>&1; then
+    curl -L -o "$CHECKSUM_FILE" "$CHECKSUM_URL"
+elif command -v wget >/dev/null 2>&1; then
+    wget -O "$CHECKSUM_FILE" "$CHECKSUM_URL"
+else
+    echo "Neither curl nor wget found. Please install one and try again."
+    exit 1
+fi
+
+# Verify checksum
+echo "Verifying checksum for $ZIP_NAME..."
+if command -v sha256sum >/dev/null 2>&1; then
+    if ! sha256sum -c "$CHECKSUM_FILE" --ignore-missing "$ZIP_NAME"; then
+        echo "Checksum verification failed!"
+        exit 1
+    fi
+else
+    echo "sha256sum not found. Skipping checksum verification."
+fi
+
+# Cleanup checksum file
+rm "$CHECKSUM_FILE"
+
 # Unzip
 echo "Extracting $ZIP_NAME..."
 if command -v unzip >/dev/null 2>&1; then
@@ -90,5 +117,6 @@ echo "Installed q to $INSTALL_DIR/q"
 # Cleanup
 rm "$ZIP_NAME"
 
+echo "For any issues, suggestions, or feature requests, please check https://github.com/${REPO_OWNER}/${REPO_NAME}"
 echo "Installation complete! Starting setup..."
 "$INSTALL_DIR/q" -S

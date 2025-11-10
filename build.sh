@@ -14,7 +14,7 @@ for target in "${targets[@]}"; do
     output="q-${os}-${arch}"
     [[ "$os" == "windows" ]] && output="${output}.exe"
     echo "Building for $os/$arch -> $output"
-    GOOS=$os GOARCH=$arch go build -ldflags="-s -w" -o "$output" .
+    CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -ldflags="-s -w" -o "$output" .
     if [[ "$os" == "linux" || ( "$os" == "windows" && "$arch" == "amd64" ) ]]; then
         echo "Compressing $output with UPX..."
         upx -9 "$output"
@@ -41,3 +41,8 @@ done
 echo "All binaries built and compressed successfully!"
 echo "Generated archives:"
 ls -la *.zip
+
+# Generate checksums
+echo "Generating SHA256 checksums..."
+sha256sum *.zip > SHA256SUMS
+echo "Checksums saved to SHA256SUMS"
