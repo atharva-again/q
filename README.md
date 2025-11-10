@@ -2,9 +2,6 @@
 
 A fast, beautiful, and powerful command-line AI assistant that brings the power of AI directly to your terminal.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/atharva-again/q.svg)](https://pkg.go.dev/github.com/atharva-again/q)
-[![GitHub Release](https://img.shields.io/github/v/release/atharva-again/q?style=flat-square)](https://github.com/atharva-again/q/releases)
-
 ## Features
 
 - **Fast & Lightweight**: Minimal dependencies, quick responses
@@ -18,8 +15,16 @@ A fast, beautiful, and powerful command-line AI assistant that brings the power 
 
 ### Quick Install (Recommended)
 
+#### Linux/macOS
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash
+```
+
+#### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1 | iex
 ```
 
 This will:
@@ -33,6 +38,24 @@ This will:
 2. Extract the archive
 3. Move the binary to a directory in your PATH
 4. Run `q -S` to configure
+
+### Setup & Configuration
+
+Run setup to configure your AI provider and preferences:
+
+```bash
+q -S
+```
+
+This will guide you through:
+- Choosing your AI provider (Gemini/OpenAI)
+- Selecting a model
+- Setting default response length
+- Entering your API key
+
+You can find API keys here:
+- [Google AI Studio](https://aistudio.google.com/) (for Gemini models)
+- [OpenAI API Keys](https://platform.openai.com/account/api-keys)
 
 ### Build from Source
 
@@ -64,20 +87,6 @@ q -m "How does photosynthesis work?"
 # Detailed responses
 q -l "Write a comprehensive guide to Docker"
 ```
-
-### Setup & Configuration
-
-Run setup to configure your AI provider and preferences:
-
-```bash
-q -S
-```
-
-This will guide you through:
-- Choosing your AI provider (Gemini/OpenAI)
-- Selecting a model
-- Setting default response length
-- Entering your API key
 
 ### Help
 
