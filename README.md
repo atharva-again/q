@@ -1,144 +1,176 @@
-<p align="center">
-  <img alt="GoReleaser Logo" src="https://avatars2.githubusercontent.com/u/24697112?v=3&s=200" height="200" />
-  <h3 align="center">GoReleaser</h3>
-  <p align="center">Release engineering, simplified.</p>
-  <p align="center">
-    <img alt="Go" src="./www/docs/static/go-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Go" src="./www/docs/static/go-dark.svg#gh-dark-mode-only" height="30" width="30" />
-    <img alt="Rust" src="./www/docs/static/rust-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Rust" src="./www/docs/static/rust-dark.svg#gh-dark-mode-only" height="30" width="30" />
-    <img alt="Zig" src="./www/docs/static/zig-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Zig" src="./www/docs/static/zig-dark.svg#gh-dark-mode-only" height="30" width="30" />
-    <img alt="Bun" src="./www/docs/static/bun-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Bun" src="./www/docs/static/bun-dark.svg#gh-dark-mode-only" height="30" width="30" />
-    <img alt="Deno" src="./www/docs/static/deno-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Deno" src="./www/docs/static/deno-dark.svg#gh-dark-mode-only" height="30" width="30" />
-    <img alt="Python" src="./www/docs/static/python-light.svg#gh-light-mode-only" height="30" width="30" />
-    <img alt="Python" src="./www/docs/static/python-dark.svg#gh-dark-mode-only" height="30" width="30" />
-  </p>
-</p>
+# q
 
----
+A fast, beautiful, and powerful command-line AI assistant that brings the power of AI directly to your terminal.
 
-We handle the complexities of releasing so you can focus in building what really
-matters: **your software**.
+[![Go Reference](https://pkg.go.dev/badge/github.com/atharva-again/q.svg)](https://pkg.go.dev/github.com/atharva-again/q)
+[![GitHub Release](https://img.shields.io/github/v/release/atharva-again/q?style=flat-square)](https://github.com/atharva-again/q/releases)
 
-![](https://goreleaser.com/static/goreleaser.png)
+## Features
 
----
+- **Fast & Lightweight**: Minimal dependencies, quick responses
+- **Beautiful Output**: Rich markdown rendering with syntax highlighting
+- **Multiple AI Providers**: Support for Google Gemini and OpenAI models
+- **Flexible Configuration**: Easy setup with interactive wizard
+- **Response Control**: Choose response length (tiny, medium, large)
+- **Cross-Platform**: Works on Linux, macOS, and Windows
 
-## Get GoReleaser
+## Installation
 
-- [On your machine](https://goreleaser.com/install/);
-- [On CI/CD systems](https://goreleaser.com/ci/).
+### Quick Install (Recommended)
 
-## Documentation
+```bash
+curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash
+```
 
-Documentation is hosted live at https://goreleaser.com
+This will:
+- Download the appropriate binary for your system
+- Install it to your PATH
+- Run the initial setup wizard
 
-## Community
+### Manual Installation
 
-You have questions, need support and or just want to talk about GoReleaser?
+1. Download the latest release from [GitHub Releases](https://github.com/atharva-again/q/releases)
+2. Extract the archive
+3. Move the binary to a directory in your PATH
+4. Run `q -S` to configure
 
-Here are ways to get in touch with the GoReleaser community:
+### Build from Source
 
-[![Join Discord](https://img.shields.io/badge/Join_our_Discord_server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/RGEBtg8vQ6)
-[![Follow Twitter](https://img.shields.io/badge/follow_on_twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/goreleaser)
-[![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/goreleaser/goreleaser/discussions)
+```bash
+git clone https://github.com/atharva-again/q.git
+cd q
+go build -o q .
+sudo mv q /usr/local/bin/
+q -S
+```
 
-You can find the links above and all others [here](https://goreleaser.com/links/).
+## Usage
 
-### Code of Conduct
+### Basic Query
 
-This project adheres to the Contributor Covenant [code of conduct](https://github.com/goreleaser/.github/blob/main/CODE_OF_CONDUCT.md).
-By participating, you are expected to uphold this code.
-We appreciate your contribution.
-Please refer to our [contributing guidelines](CONTRIBUTING.md) for further information.
+```bash
+q "What is the capital of India?"
+```
 
-## Badges
+### Response Length Options
 
-[![Release](https://img.shields.io/github/release/goreleaser/goreleaser.svg?style=for-the-badge)](https://github.com/goreleaser/goreleaser/releases/latest)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
-[![Build status](https://img.shields.io/github/actions/workflow/status/goreleaser/goreleaser/build.yml?style=for-the-badge&branch=main)](https://github.com/goreleaser/goreleaser/actions?workflow=build)
-[![Codecov branch](https://img.shields.io/codecov/c/github/goreleaser/goreleaser/main.svg?style=for-the-badge)](https://codecov.io/gh/goreleaser/goreleaser)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/goreleaser&style=for-the-badge)](https://artifacthub.io/packages/search?repo=goreleaser)
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
-[![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
-[![Backers on Open Collective](https://opencollective.com/goreleaser/backers/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/backers/)
-[![Sponsors on Open Collective](https://opencollective.com/goreleaser/sponsors/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/sponsors/)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
-[![CII Best Practices](https://img.shields.io/cii/summary/5420?label=openssf%20best%20practices&style=for-the-badge)](https://bestpractices.coreinfrastructure.org/projects/5420)
-[![GoReportCard](https://goreportcard.com/badge/github.com/goreleaser/goreleaser?style=for-the-badge)](https://goreportcard.com/report/github.com/goreleaser/goreleaser)
+```bash
+# Short responses
+q -t "Explain quantum computing"
 
-## GitHub Sponsors
+# Medium responses (default)
+q -m "How does photosynthesis work?"
 
-Sponsor [@caarlos0 on GitHub](https://github.com/sponsors/caarlos0/) to get
-featured here.
+# Detailed responses
+q -l "Write a comprehensive guide to Docker"
+```
 
-## OpenCollective
+### Setup & Configuration
 
-### Sponsors
+Run setup to configure your AI provider and preferences:
 
-Does your company use goreleaser? Help keep the project bug-free and feature rich by [sponsoring the project](https://opencollective.com/goreleaser#sponsor).
+```bash
+q -S
+```
 
-<a href="https://opencollective.com/goreleaser/sponsors/0/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/0/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/1/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/1/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/2/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/2/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/3/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/3/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/4/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/4/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/5/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/5/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/6/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/6/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/7/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/7/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/8/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/8/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/9/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/9/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/10/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/10/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/11/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/11/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/12/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/12/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/13/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/13/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/14/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/14/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/15/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/15/avatar"></a>
-<a href="https://opencollective.com/goreleaser/sponsors/16/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/16/avatar"></a>
+This will guide you through:
+- Choosing your AI provider (Gemini/OpenAI)
+- Selecting a model
+- Setting default response length
+- Entering your API key
 
-### Backers
+### Help
 
-Love our work and community? [Become a backer](https://opencollective.com/goreleaser).
+```bash
+q -h  # Show help
+q -S  # Run setup
+```
 
-<a href="https://opencollective.com/goreleaser/backers/0/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/0/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/1/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/1/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/2/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/2/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/3/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/3/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/4/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/4/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/5/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/5/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/6/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/6/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/7/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/7/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/8/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/8/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/9/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/9/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/10/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/10/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/11/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/11/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/12/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/12/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/13/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/13/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/14/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/14/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/15/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/15/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/16/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/16/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/17/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/17/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/18/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/18/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/19/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/19/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/20/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/20/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/21/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/21/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/22/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/22/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/23/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/23/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/24/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/24/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/25/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/25/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/26/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/26/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/27/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/27/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/28/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/28/avatar"></a>
-<a href="https://opencollective.com/goreleaser/backers/29/website" rel="nofollow sponsored" target="_blank"><img src="https://opencollective.com/goreleaser/backers/29/avatar"></a>
+## Configuration
 
-### Contributors
+Configuration is stored in:
+- Linux/macOS: `~/.config/q/config.json`
+- Windows: `%APPDATA%\q\config.json`
 
-This project exists thanks to all the people who contribute.
-[Contribution guide](CONTRIBUTING.md).
+Example config:
+```json
+{
+  "provider": "gemini",
+  "model": "gemini-2.0-flash",
+  "api_key": "your-api-key-here",
+  "default_length": "medium"
+}
+```
 
-## Stars
+## Supported Models
 
-[![Stargazers over time](https://starchart.cc/goreleaser/goreleaser.svg?variant=adaptive)](https://starchart.cc/goreleaser/goreleaser)
+### Google Gemini
+- `gemini-2.5-flash` (Fast, recommended)
+- `gemini-2.5-pro` (Most capable)
+- `gemini-2.0-flash` (Legacy)
+
+### OpenAI
+- `gpt-5` (Latest GPT-5)
+- `gpt-5-mini` (Fast, cost-effective)
+- `gpt-5-nano` (Fastest, cheapest)
+- `gpt-4.1` (Legacy GPT-4.1)
+
+## Examples
+
+```bash
+# Quick facts
+q "What is the population of Tokyo?"
+
+# Code explanations
+q "Explain how recursion works in Python"
+
+# Creative writing
+q -l "Write a short story about a robot learning emotions"
+
+# Technical questions
+q "How do I optimize a PostgreSQL query?"
+
+# Learning
+q -m "Explain the concept of containerization"
+```
+
+## Development
+
+### Prerequisites
+
+- Go 1.25.4 or later
+- Git
+
+### Building
+
+```bash
+# Build for current platform
+go build -o q .
+
+# Build for multiple platforms
+./build.sh
+```
+
+### Testing
+
+```bash
+go test ./...
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Atharva Verma** - [atharva.verma18@gmail.com](mailto:atharva.verma18@gmail.com)
