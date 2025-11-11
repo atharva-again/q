@@ -71,13 +71,13 @@ fi
 
 # Verify checksum
 echo "Verifying checksum for $ZIP_NAME..."
-if command -v sha256sum >/dev/null 2>&1; then
-    if ! sha256sum -c "$CHECKSUM_FILE" --ignore-missing "$ZIP_NAME"; then
-        echo "Checksum verification failed!"
-        exit 1
-    fi
+expected_hash=$(grep " $ZIP_NAME$" "$CHECKSUM_FILE" | awk '{print $1}')
+actual_hash=$(sha256sum "$ZIP_NAME" | awk '{print $1}')
+if [ "$actual_hash" != "$expected_hash" ]; then
+    echo "Checksum verification failed! Expected: $expected_hash, Got: $actual_hash"
+    exit 1
 else
-    echo "sha256sum not found. Skipping checksum verification."
+    echo "Checksum verification passed."
 fi
 
 # Cleanup checksum file
