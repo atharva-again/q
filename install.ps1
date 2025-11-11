@@ -2,9 +2,9 @@
 # Fetches the appropriate binary for Windows and installs it.
 
 param(
-    [string]$RepoOwner = "atharva-again",  # Replace with your GitHub username
-    [string]$RepoName = "q",                     # Replace with your repo name
-    [string]$ReleaseTag = "v1.0.0"               # Replace with the release tag
+    [string]$RepoOwner = "atharva-again",  
+    [string]$RepoName = "q",                    
+    [string]$ReleaseTag = "v1.0.1"               
 )
 
 # Detect architecture

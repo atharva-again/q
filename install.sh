@@ -5,11 +5,11 @@
 
 set -e
 
-REPO_OWNER="atharva-again"  # Replace with your GitHub username
-REPO_NAME="q"                     # Replace with your repo name
-RELEASE_TAG="v1.0.0"              # Replace with the release tag
+REPO_OWNER="atharva-again"  
+REPO_NAME="q"                     
+RELEASE_TAG="v1.0.1"              
 
-# Detect OS and architecture
+
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
