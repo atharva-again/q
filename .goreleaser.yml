@@ -18,7 +18,7 @@ builds:
 
 # Archive customization
 archives:
-  - name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}.zip'
+  - name_template: '{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}'
     formats: [zip]
     # files: []  # No extra files, just the binary
 

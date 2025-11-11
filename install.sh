@@ -38,9 +38,9 @@ case $ARCH in
 esac
 
 # Binary name
-BINARY_NAME="q-${OS}-${ARCH}"
+BINARY_NAME="q"
 
-ZIP_NAME="${BINARY_NAME}.zip"
+ZIP_NAME="q-${OS}-${ARCH}.zip"
 DOWNLOAD_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${RELEASE_TAG}/${ZIP_NAME}"
 
 echo "Detected OS: $OS, Arch: $ARCH"

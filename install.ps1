@@ -19,8 +19,8 @@ switch ($arch) {
 }
 
 # Binary details
-$binaryName = "q-windows-$arch.exe"
-$zipName = "$binaryName.zip"
+$binaryName = "q.exe"
+$zipName = "q-windows-$arch.zip"
 $downloadUrl = "https://github.com/$RepoOwner/$RepoName/releases/download/$ReleaseTag/$zipName"
 
 Write-Host "Detected Arch: $arch"
