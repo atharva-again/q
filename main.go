@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -18,10 +17,11 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/glamour"
 	"github.com/fatih/color"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/term"
-	"google.golang.org/api/option"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"google.golang.org/genai"
 )
 
 type Config struct {
@@ -33,19 +33,19 @@ type Config struct {
 
 var providers = []string{"gemini", "openai"}
 var models = map[string][]string{
-	"gemini": {"gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"},
+	"gemini": {"gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash-lite"},
 	"openai": {"gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-4.1"},
 }
 
 // Global color definitions
 var (
-	welcomeColor = color.New(color.FgCyan, color.Bold)
-	choiceColor  = color.New(color.FgYellow)
-	errorColor   = color.New(color.FgRed)
-	successColor = color.New(color.FgGreen)
-	queryColor   = color.New(color.FgCyan, color.Bold)
+	welcomeColor  = color.New(color.FgCyan, color.Bold)
+	choiceColor   = color.New(color.FgYellow)
+	errorColor    = color.New(color.FgRed)
+	successColor  = color.New(color.FgGreen)
+	queryColor    = color.New(color.FgCyan, color.Bold)
 	responseColor = color.New(color.FgGreen)
-	usageColor   = color.New(color.FgYellow)
+	usageColor    = color.New(color.FgYellow)
 )
 
 // Global API clients for reuse
@@ -116,9 +116,10 @@ func getValidatedChoice(reader *bufio.Reader, options []string, prompt string) i
 }
 
 // Helper for API key prompting and validation
-func promptAndValidateAPIKey(reader *bufio.Reader, provider string) string {
+func promptAndValidateAPIKey(reader *bufio.Reader, provider string, model string) string {
+	titleCaser := cases.Title(language.Und)
 	for {
-		fmt.Printf("Enter your %s API key: ", strings.Title(provider))
+		fmt.Printf("Enter your %s API key: ", titleCaser.String(provider))
 		apiKeyBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			log.Fatal("Failed to read API key:", err)
@@ -130,11 +131,12 @@ func promptAndValidateAPIKey(reader *bufio.Reader, provider string) string {
 		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		s.Suffix = " Validating API key..."
 		s.Start()
-		testConfig := &Config{Provider: provider, APIKey: apiKey}
+		testConfig := &Config{Provider: provider, Model: model, APIKey: apiKey}
 		err = validateAPIKey(testConfig)
 		s.Stop()
 		if err != nil {
 			errorColor.Println("Invalid API key. Please try again.")
+			fmt.Printf("Your entered API key: %s\n", maskKey(apiKey))
 			continue
 		}
 		return apiKey
@@ -155,83 +157,116 @@ func runSetup() *Config {
 	// Load existing config if available
 	existingConfig, err := loadConfig()
 	if err != nil {
-		existingConfig = &Config{Provider: "gemini", Model: "gemini-2.0-flash", DefaultLength: "medium", APIKey: ""}
+		existingConfig = nil // No defaults if config missing
 	}
 
 	// Choose provider
-	choiceColor.Printf("Current provider: %s\n", strings.Title(existingConfig.Provider))
-	fmt.Println("Choose your AI provider:")
-	for i, p := range providers {
-		fmt.Printf("  %d. %s\n", i+1, strings.Title(p))
-	}
-	fmt.Printf("  %d. Skip (keep current)\n", len(providers)+1)
-	prompt := fmt.Sprintf("Enter choice (1-%d): ", len(providers)+1)
-	choice := getValidatedChoice(reader, append(providers, "skip"), prompt)
-	provider := existingConfig.Provider
-	if choice <= len(providers) {
+	var provider string
+	titleCaser := cases.Title(language.Und)
+	if existingConfig != nil {
+		choiceColor.Printf("Current provider: %s\n", titleCaser.String(existingConfig.Provider))
+		fmt.Println("Provider:")
+		fmt.Println("  1. Keep current")
+		fmt.Println("  2. Choose new")
+		choice := getValidatedChoice(reader, []string{"keep", "new"}, "Enter choice (1-2): ")
+		if choice == 1 {
+			provider = existingConfig.Provider
+		} else {
+			fmt.Println("Choose your AI provider:")
+			for i, p := range providers {
+				fmt.Printf("  %d. %s\n", i+1, titleCaser.String(p))
+			}
+			choice = getValidatedChoice(reader, providers, fmt.Sprintf("Enter choice (1-%d): ", len(providers)))
+			provider = providers[choice-1]
+		}
+	} else {
+		fmt.Println("Choose your AI provider:")
+		for i, p := range providers {
+			fmt.Printf("  %d. %s\n", i+1, titleCaser.String(p))
+		}
+		choice := getValidatedChoice(reader, providers, fmt.Sprintf("Enter choice (1-%d): ", len(providers)))
 		provider = providers[choice-1]
 	}
-	printSuccess(fmt.Sprintf("Chosen provider: %s", strings.Title(provider)))
+	printSuccess(fmt.Sprintf("Chosen provider: %s", titleCaser.String(provider)))
 	fmt.Println()
 
 	// Get available models for the provider
 	modelsForProvider := models[provider]
 
 	// Choose model
-	choiceColor.Printf("Current model: %s\n", existingConfig.Model)
-	fmt.Println("Available models:")
-	for i, m := range modelsForProvider {
-		fmt.Printf("  %d. %s\n", i+1, m)
-	}
-	fmt.Printf("  %d. Skip (keep current)\n", len(modelsForProvider)+1)
-	prompt = fmt.Sprintf("Enter choice (1-%d): ", len(modelsForProvider)+1)
-	choice = getValidatedChoice(reader, append(modelsForProvider, "skip"), prompt)
-	model := existingConfig.Model
-	if choice <= len(modelsForProvider) {
+	var model string
+	if existingConfig != nil && existingConfig.Provider == provider {
+		choiceColor.Printf("Current model: %s\n", existingConfig.Model)
+		fmt.Println("Model:")
+		fmt.Println("  1. Keep current")
+		fmt.Println("  2. Choose new")
+		choice := getValidatedChoice(reader, []string{"keep", "new"}, "Enter choice (1-2): ")
+		if choice == 1 {
+			model = existingConfig.Model
+		} else {
+			fmt.Println("Available models:")
+			for i, m := range modelsForProvider {
+				fmt.Printf("  %d. %s\n", i+1, m)
+			}
+			choice = getValidatedChoice(reader, modelsForProvider, fmt.Sprintf("Enter choice (1-%d): ", len(modelsForProvider)))
+			model = modelsForProvider[choice-1]
+		}
+	} else {
+		fmt.Println("Available models:")
+		for i, m := range modelsForProvider {
+			fmt.Printf("  %d. %s\n", i+1, m)
+		}
+		choice := getValidatedChoice(reader, modelsForProvider, fmt.Sprintf("Enter choice (1-%d): ", len(modelsForProvider)))
 		model = modelsForProvider[choice-1]
 	}
 	printSuccess(fmt.Sprintf("Chosen model: %s", model))
 	fmt.Println()
 
 	// Choose default length
-	choiceColor.Printf("Current default length: %s\n", strings.Title(existingConfig.DefaultLength))
-	fmt.Println("Choose default response length:")
-	fmt.Println("  1. Tiny (short responses)")
-	fmt.Println("  2. Medium (balanced)")
-	fmt.Println("  3. Large (detailed responses)")
-	fmt.Println("  4. Skip (keep current)")
-	prompt = "Enter choice (1-4): "
-	choice = getValidatedChoice(reader, []string{"tiny", "medium", "large", "skip"}, prompt)
-	defaultLength := existingConfig.DefaultLength
-	if choice < 4 {
-		switch choice {
-		case 1:
-			defaultLength = "tiny"
-		case 2:
-			defaultLength = "medium"
-		case 3:
-			defaultLength = "large"
+	var defaultLength string
+	lengthOptions := []string{"tiny", "medium", "large"}
+	if existingConfig != nil {
+		choiceColor.Printf("Current default length: %s\n", titleCaser.String(existingConfig.DefaultLength))
+		fmt.Println("Default length:")
+		fmt.Println("  1. Keep current")
+		fmt.Println("  2. Choose new")
+		choice := getValidatedChoice(reader, []string{"keep", "new"}, "Enter choice (1-2): ")
+		if choice == 1 {
+			defaultLength = existingConfig.DefaultLength
+		} else {
+			fmt.Println("Choose default response length:")
+			fmt.Println("  1. Tiny (short responses)")
+			fmt.Println("  2. Medium (balanced)")
+			fmt.Println("  3. Large (detailed responses)")
+			choice = getValidatedChoice(reader, lengthOptions, "Enter choice (1-3): ")
+			defaultLength = lengthOptions[choice-1]
 		}
+	} else {
+		fmt.Println("Choose default response length:")
+		fmt.Println("  1. Tiny (short responses)")
+		fmt.Println("  2. Medium (balanced)")
+		fmt.Println("  3. Large (detailed responses)")
+		choice := getValidatedChoice(reader, lengthOptions, "Enter choice (1-3): ")
+		defaultLength = lengthOptions[choice-1]
 	}
-	printSuccess(fmt.Sprintf("Chosen default length: %s", strings.Title(defaultLength)))
+	printSuccess(fmt.Sprintf("Chosen default length: %s", titleCaser.String(defaultLength)))
 	fmt.Println()
 
 	// Enter API key
 	var apiKey string
-	if existingConfig.APIKey != "" {
+	if existingConfig != nil && existingConfig.APIKey != "" {
 		choiceColor.Printf("Current API key: %s\n", maskKey(existingConfig.APIKey))
-		fmt.Println("API Key:")
-		fmt.Println("  1. Enter new API key")
-		fmt.Println("  2. Skip (keep current)")
-		prompt = "Enter choice (1-2): "
-		choice = getValidatedChoice(reader, []string{"new", "skip"}, prompt)
-		if choice == 2 {
+		fmt.Println("API key:")
+		fmt.Println("  1. Keep current")
+		fmt.Println("  2. Enter new")
+		choice := getValidatedChoice(reader, []string{"keep", "new"}, "Enter choice (1-2): ")
+		if choice == 1 {
 			apiKey = existingConfig.APIKey
 		} else {
-			apiKey = promptAndValidateAPIKey(reader, provider)
+			apiKey = promptAndValidateAPIKey(reader, provider, model)
 		}
 	} else {
-		apiKey = promptAndValidateAPIKey(reader, provider)
+		apiKey = promptAndValidateAPIKey(reader, provider, model)
 	}
 
 	printSuccess(fmt.Sprintf("API key set: %s", maskKey(apiKey)))
@@ -245,12 +280,12 @@ func runSetup() *Config {
 	return config
 }
 
-func queryAI(config *Config, query string, maxTokens int, wordLimit int) (string, error) {
+func queryAI(config *Config, query string, wordLimit int) (string, error) {
 	switch config.Provider {
 	case "gemini":
-		return queryGemini(config.APIKey, config.Model, query, maxTokens, wordLimit)
+		return queryGemini(config.APIKey, config.Model, query, wordLimit)
 	case "openai":
-		return queryOpenAI(config.APIKey, config.Model, query, maxTokens, wordLimit)
+		return queryOpenAI(config.APIKey, config.Model, query, wordLimit)
 	default:
 		return "", fmt.Errorf("unsupported provider")
 	}
@@ -258,64 +293,110 @@ func queryAI(config *Config, query string, maxTokens int, wordLimit int) (string
 
 func validateAPIKey(config *Config) error {
 	testQuery := "Hello"
-	_, err := queryAI(config, testQuery, 50, 50)
+	_, err := queryAI(config, testQuery, 50)
 	if err != nil {
 		return fmt.Errorf("API key validation failed: %v. Please run setup again with -S to update your key", err)
 	}
 	return nil
 }
 
-func queryGemini(apiKey, model, query string, maxTokens int, wordLimit int) (string, error) {
-	if geminiClient == nil {
-		ctx := context.Background()
-		var err error
-		geminiClient, err = genai.NewClient(ctx, option.WithAPIKey(apiKey))
-		if err != nil {
-			return "", err
-		}
-	}
-	prompt := fmt.Sprintf("%s Please limit your response to approximately %d words.", query, wordLimit)
-	m := geminiClient.GenerativeModel(model)
-	max := int32(maxTokens)
-	m.GenerationConfig.MaxOutputTokens = &max
-	resp, err := m.GenerateContent(context.Background(), genai.Text(prompt))
-	if err != nil {
-		return "", err
-	}
+func queryGemini(apiKey, model, query string, wordLimit int) (string, error) {
+       ctx := context.Background()
+       if geminiClient == nil {
+	       var err error
+	       geminiClient, err = genai.NewClient(ctx, &genai.ClientConfig{
+		       APIKey:  apiKey,
+		       Backend: genai.BackendGeminiAPI,
+	       })
+	       if err != nil {
+		       errorColor.Printf("Gemini API client creation failed: %v\n", err)
+		       return "", err
+	       }
+       }
+       prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
+       contents := []*genai.Content{{Parts: []*genai.Part{genai.NewPartFromText(prompt)}}}
 
-	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-		return fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0]), nil
-	}
-	return "", fmt.Errorf("no response")
+       // Set thinking_budget=0 for Gemini 2.5 models to reduce latency
+       var config *genai.GenerateContentConfig
+       if strings.HasPrefix(model, "gemini-2.5-") {
+	       zero := int32(0)
+	       config = &genai.GenerateContentConfig{
+		       ThinkingConfig: &genai.ThinkingConfig{
+			       ThinkingBudget: &zero,
+		       },
+	       }
+       }
+
+       resp, err := geminiClient.Models.GenerateContent(ctx, model, contents, config)
+       if err != nil {
+	       errorColor.Printf("Gemini API error: %v\n", err)
+	       errorColor.Printf("Gemini error type: %T, value: %v\n", err, err)
+	       return "", err
+       }
+       if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+	       return resp.Candidates[0].Content.Parts[0].Text, nil
+       }
+       errorColor.Println("Gemini API returned no response candidates.")
+       // Print candidate metadata for debugging
+       if len(resp.Candidates) > 0 {
+	       fmt.Printf("Candidate metadata: %+v\n", resp.Candidates[0].Content)
+       }
+       return "", fmt.Errorf("no response")
 }
 
-func queryOpenAI(apiKey, model, query string, maxTokens int, wordLimit int) (string, error) {
-	if openaiClient == nil {
-		openaiClient = openai.NewClient(apiKey)
-	}
-	prompt := fmt.Sprintf("%s Please limit your response to approximately %d words.", query, wordLimit)
-	resp, err := openaiClient.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:     model,
-			Messages:  []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}},
-			MaxTokens: maxTokens,
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-	if len(resp.Choices) > 0 {
-		return resp.Choices[0].Message.Content, nil
-	}
-	return "", fmt.Errorf("no response")
+func queryOpenAI(apiKey, model, query string, wordLimit int) (string, error) {
+       if openaiClient == nil {
+	       openaiClient = openai.NewClient(apiKey)
+       }
+       prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
+
+       // Add reasoning.effort for reasoning models (gpt-5, gpt-5-mini, gpt-5-nano)
+       reasoningEffort := ""
+       switch model {
+       case "gpt-5", "gpt-5-mini", "gpt-5-nano":
+	       reasoningEffort = "low" // Fastest response, lowest cost
+       }
+
+       // If using a reasoning model, use the Responses API (not supported in go-openai yet)
+       // For now, just add a system message to simulate the effect
+       var messages []openai.ChatCompletionMessage
+       if reasoningEffort != "" {
+	       messages = []openai.ChatCompletionMessage{
+		       {Role: openai.ChatMessageRoleSystem, Content: "reasoning.effort: low"},
+		       {Role: openai.ChatMessageRoleUser, Content: prompt},
+	       }
+       } else {
+	       messages = []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}}
+       }
+
+       resp, err := openaiClient.CreateChatCompletion(
+	       context.Background(),
+	       openai.ChatCompletionRequest{
+		       Model:    model,
+		       Messages: messages,
+		       // MaxTokens omitted
+	       },
+       )
+       if err != nil {
+	       errorColor.Printf("OpenAI API error: %v\n", err)
+	       // Print additional details if available
+	       if apiErr, ok := err.(*openai.APIError); ok {
+		       errorColor.Printf("OpenAI API error details: Type=%v, Message=%v, Code=%v\n", apiErr.Type, apiErr.Message, apiErr.Code)
+	       }
+	       return "", err
+       }
+       if len(resp.Choices) > 0 {
+	       return resp.Choices[0].Message.Content, nil
+       }
+       errorColor.Println("OpenAI API returned no response choices.")
+       return "", fmt.Errorf("no response")
 }
 
 func printHelp() {
 	fmt.Println("q - A command-line AI assistant")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Printf("  %s [flags] [query]\n", os.Args[0])
+	fmt.Printf("  %s [query] [flags]\n", os.Args[0])
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  -h, -H, -help      Show help")
@@ -325,9 +406,9 @@ func printHelp() {
 	fmt.Println("  -l, -L, -large     Keep responses large")
 	fmt.Println()
 	fmt.Println("Examples:")
-	fmt.Printf("  %s -S\n", os.Args[0])
 	fmt.Printf("  %s What is the capital of India?\n", os.Args[0])
-	fmt.Printf("  %s -l Explain the importance of public transport in detail.\n", os.Args[0])
+	fmt.Printf("  %s What is the role of Jack Dorsey in Twitter? -l\n", os.Args[0])
+	fmt.Printf("  %s -S\n", os.Args[0])
 }
 
 func main() {
@@ -337,44 +418,29 @@ func main() {
 	var medium bool
 	var large bool
 
-	// Define flags with aliases using a map
-	flagAliases := map[string]*bool{
-		"S":     &setup,
-		"setup": &setup,
-		"s":     &setup,
-		"H":     &help,
-		"help":  &help,
-		"h":     &help,
-		"t":     &tiny,
-		"T":     &tiny,
-		"tiny":  &tiny,
-		"m":     &medium,
-		"M":     &medium,
-		"medium": &medium,
-		"l":     &large,
-		"L":     &large,
-		"large": &large,
-	}
-
-	for alias, varPtr := range flagAliases {
-		var desc string
-		switch varPtr {
-		case &setup:
-			desc = "Run setup to configure preferences"
-		case &help:
-			desc = "Show help"
-		case &tiny:
-			desc = "Keep responses short"
-		case &medium:
-			desc = "Keep responses medium"
-		case &large:
-			desc = "Keep responses large"
+	// Manual argument parsing to allow flags after query
+	args := os.Args[1:]
+	var queryParts []string
+	for _, arg := range args {
+		switch arg {
+		case "-h", "-H", "-help":
+			help = true
+		case "-S", "-s", "-setup":
+			setup = true
+		case "-t", "-T", "-tiny":
+			tiny = true
+		case "-m", "-M", "-medium":
+			medium = true
+		case "-l", "-L", "-large":
+			large = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				// Unknown flag, ignore or handle as needed
+				continue
+			}
+			queryParts = append(queryParts, arg)
 		}
-		flag.BoolVar(varPtr, alias, false, desc)
 	}
-
-	flag.Usage = printHelp
-	flag.Parse()
 
 	if help {
 		printHelp()
@@ -389,45 +455,37 @@ func main() {
 	} else {
 		config, err = loadConfig()
 		if err != nil {
-			fmt.Println("No configuration found. Run with -S to setup.")
+			usageColor.Println("No configuration found. Please run 'q -s' to setup before using q.")
 			os.Exit(1)
 		}
 	}
 
-	// Determine max tokens based on config default and flags
-	var maxTokens int
+	// Only use wordLimit
 	var wordLimit int
 	if tiny {
-		maxTokens = 300
 		wordLimit = 200
 	} else if medium {
-		maxTokens = 1000
 		wordLimit = 600
 	} else if large {
-		maxTokens = 2000
 		wordLimit = 1000
 	} else {
 		// Use default from config
 		switch config.DefaultLength {
 		case "tiny":
-			maxTokens = 300
 			wordLimit = 200
 		case "large":
-			maxTokens = 2000
 			wordLimit = 1000
 		default:
-			maxTokens = 1000
 			wordLimit = 600
 		}
 	}
 
-	args := flag.Args()
-	if len(args) == 0 {
-		usageColor.Printf("Usage: %s [flags] [query]\n", os.Args[0])
+	if len(queryParts) == 0 && !setup {
+		usageColor.Printf("Usage: %s [query] [flags]\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	query := strings.Join(args, " ")
+	query := strings.Join(queryParts, " ")
 
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Start()
@@ -435,31 +493,47 @@ func main() {
 	// Start timer goroutine
 	go func() {
 		seconds := 0
-		s.Suffix = fmt.Sprintf(" Getting the answer... [%ds]", seconds)
 		for {
-			select {
-			case <-time.After(1 * time.Second):
-				seconds++
-				s.Suffix = fmt.Sprintf(" Getting the answer... [%ds]", seconds)
-			}
+			time.Sleep(1 * time.Second)
+			seconds++
+			s.Suffix = fmt.Sprintf(" Getting the answer... [%ds]", seconds)
 		}
 	}()
 
-	response, err := queryAI(config, query, maxTokens, wordLimit)
-	if err != nil {
-		s.Stop()
-		log.Fatal(err)
-	}
+       if !setup {
+	       start := time.Now()
+	       response, err := queryAI(config, query, wordLimit)
+	       elapsed := time.Since(start)
+	       if err != nil {
+		       s.Stop()
+		       log.Fatal(err)
+	       }
 
-	s.Stop()
+	       s.Stop()
 
-	queryColor.Printf("Query: %s\n\n", query)
-	responseColor.Println("Response:")
+	       queryColor.Printf("Query: %s\n\n", query)
+	       responseColor.Println("Response:")
 
-	r, _ := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-		glamour.WithWordWrap(80),
-	)
-	rendered, _ := r.Render(response)
-	fmt.Print(rendered)
+	       r, _ := glamour.NewTermRenderer(
+		       glamour.WithAutoStyle(),
+		       glamour.WithWordWrap(80),
+	       )
+	       rendered, _ := r.Render(response)
+	       fmt.Print(rendered)
+
+	       // Print stats in muted italic
+	       muted := color.New(color.FgHiBlack, color.Italic)
+	       var size string
+	       switch wordLimit {
+	       case 200:
+		       size = "tiny"
+	       case 600:
+		       size = "medium"
+	       case 1000:
+		       size = "large"
+	       default:
+		       size = "custom"
+	       }
+	       muted.Printf("\nStats: Response generated in %.1f seconds using %s for %s response.\n", elapsed.Seconds(), config.Model, size)
+       }
 }
