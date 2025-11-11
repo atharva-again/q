@@ -301,95 +301,95 @@ func validateAPIKey(config *Config) error {
 }
 
 func queryGemini(apiKey, model, query string, wordLimit int) (string, error) {
-       ctx := context.Background()
-       if geminiClient == nil {
-	       var err error
-	       geminiClient, err = genai.NewClient(ctx, &genai.ClientConfig{
-		       APIKey:  apiKey,
-		       Backend: genai.BackendGeminiAPI,
-	       })
-	       if err != nil {
-		       errorColor.Printf("Gemini API client creation failed: %v\n", err)
-		       return "", err
-	       }
-       }
-       prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
-       contents := []*genai.Content{{Parts: []*genai.Part{genai.NewPartFromText(prompt)}}}
+	ctx := context.Background()
+	if geminiClient == nil {
+		var err error
+		geminiClient, err = genai.NewClient(ctx, &genai.ClientConfig{
+			APIKey:  apiKey,
+			Backend: genai.BackendGeminiAPI,
+		})
+		if err != nil {
+			errorColor.Printf("Gemini API client creation failed: %v\n", err)
+			return "", err
+		}
+	}
+	prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
+	contents := []*genai.Content{{Parts: []*genai.Part{genai.NewPartFromText(prompt)}}}
 
-       // Set thinking_budget=0 for Gemini 2.5 models to reduce latency
-       var config *genai.GenerateContentConfig
-       if strings.HasPrefix(model, "gemini-2.5-") {
-	       zero := int32(0)
-	       config = &genai.GenerateContentConfig{
-		       ThinkingConfig: &genai.ThinkingConfig{
-			       ThinkingBudget: &zero,
-		       },
-	       }
-       }
+	// Set thinking_budget=0 for Gemini 2.5 models to reduce latency
+	var config *genai.GenerateContentConfig
+	if strings.HasPrefix(model, "gemini-2.5-") {
+		zero := int32(0)
+		config = &genai.GenerateContentConfig{
+			ThinkingConfig: &genai.ThinkingConfig{
+				ThinkingBudget: &zero,
+			},
+		}
+	}
 
-       resp, err := geminiClient.Models.GenerateContent(ctx, model, contents, config)
-       if err != nil {
-	       errorColor.Printf("Gemini API error: %v\n", err)
-	       errorColor.Printf("Gemini error type: %T, value: %v\n", err, err)
-	       return "", err
-       }
-       if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-	       return resp.Candidates[0].Content.Parts[0].Text, nil
-       }
-       errorColor.Println("Gemini API returned no response candidates.")
-       // Print candidate metadata for debugging
-       if len(resp.Candidates) > 0 {
-	       fmt.Printf("Candidate metadata: %+v\n", resp.Candidates[0].Content)
-       }
-       return "", fmt.Errorf("no response")
+	resp, err := geminiClient.Models.GenerateContent(ctx, model, contents, config)
+	if err != nil {
+		errorColor.Printf("Gemini API error: %v\n", err)
+		errorColor.Printf("Gemini error type: %T, value: %v\n", err, err)
+		return "", err
+	}
+	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
+		return resp.Candidates[0].Content.Parts[0].Text, nil
+	}
+	errorColor.Println("Gemini API returned no response candidates.")
+	// Print candidate metadata for debugging
+	if len(resp.Candidates) > 0 {
+		fmt.Printf("Candidate metadata: %+v\n", resp.Candidates[0].Content)
+	}
+	return "", fmt.Errorf("no response")
 }
 
 func queryOpenAI(apiKey, model, query string, wordLimit int) (string, error) {
-       if openaiClient == nil {
-	       openaiClient = openai.NewClient(apiKey)
-       }
-       prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
+	if openaiClient == nil {
+		openaiClient = openai.NewClient(apiKey)
+	}
+	prompt := fmt.Sprintf("You must provide a response that is approximately %d words long. Answer the following query in markdown format: %s", wordLimit, query)
 
-       // Add reasoning.effort for reasoning models (gpt-5, gpt-5-mini, gpt-5-nano)
-       reasoningEffort := ""
-       switch model {
-       case "gpt-5", "gpt-5-mini", "gpt-5-nano":
-	       reasoningEffort = "low" // Fastest response, lowest cost
-       }
+	// Add reasoning.effort for reasoning models (gpt-5, gpt-5-mini, gpt-5-nano)
+	reasoningEffort := ""
+	switch model {
+	case "gpt-5", "gpt-5-mini", "gpt-5-nano":
+		reasoningEffort = "low" // Fastest response, lowest cost
+	}
 
-       // If using a reasoning model, use the Responses API (not supported in go-openai yet)
-       // For now, just add a system message to simulate the effect
-       var messages []openai.ChatCompletionMessage
-       if reasoningEffort != "" {
-	       messages = []openai.ChatCompletionMessage{
-		       {Role: openai.ChatMessageRoleSystem, Content: "reasoning.effort: low"},
-		       {Role: openai.ChatMessageRoleUser, Content: prompt},
-	       }
-       } else {
-	       messages = []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}}
-       }
+	// If using a reasoning model, use the Responses API (not supported in go-openai yet)
+	// For now, just add a system message to simulate the effect
+	var messages []openai.ChatCompletionMessage
+	if reasoningEffort != "" {
+		messages = []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: "reasoning.effort: low"},
+			{Role: openai.ChatMessageRoleUser, Content: prompt},
+		}
+	} else {
+		messages = []openai.ChatCompletionMessage{{Role: openai.ChatMessageRoleUser, Content: prompt}}
+	}
 
-       resp, err := openaiClient.CreateChatCompletion(
-	       context.Background(),
-	       openai.ChatCompletionRequest{
-		       Model:    model,
-		       Messages: messages,
-		       // MaxTokens omitted
-	       },
-       )
-       if err != nil {
-	       errorColor.Printf("OpenAI API error: %v\n", err)
-	       // Print additional details if available
-	       if apiErr, ok := err.(*openai.APIError); ok {
-		       errorColor.Printf("OpenAI API error details: Type=%v, Message=%v, Code=%v\n", apiErr.Type, apiErr.Message, apiErr.Code)
-	       }
-	       return "", err
-       }
-       if len(resp.Choices) > 0 {
-	       return resp.Choices[0].Message.Content, nil
-       }
-       errorColor.Println("OpenAI API returned no response choices.")
-       return "", fmt.Errorf("no response")
+	resp, err := openaiClient.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:    model,
+			Messages: messages,
+			// MaxTokens omitted
+		},
+	)
+	if err != nil {
+		errorColor.Printf("OpenAI API error: %v\n", err)
+		// Print additional details if available
+		if apiErr, ok := err.(*openai.APIError); ok {
+			errorColor.Printf("OpenAI API error details: Type=%v, Message=%v, Code=%v\n", apiErr.Type, apiErr.Message, apiErr.Code)
+		}
+		return "", err
+	}
+	if len(resp.Choices) > 0 {
+		return resp.Choices[0].Message.Content, nil
+	}
+	errorColor.Println("OpenAI API returned no response choices.")
+	return "", fmt.Errorf("no response")
 }
 
 func printHelp() {
@@ -500,40 +500,40 @@ func main() {
 		}
 	}()
 
-       if !setup {
-	       start := time.Now()
-	       response, err := queryAI(config, query, wordLimit)
-	       elapsed := time.Since(start)
-	       if err != nil {
-		       s.Stop()
-		       log.Fatal(err)
-	       }
+	if !setup {
+		start := time.Now()
+		response, err := queryAI(config, query, wordLimit)
+		elapsed := time.Since(start)
+		if err != nil {
+			s.Stop()
+			log.Fatal(err)
+		}
 
-	       s.Stop()
+		s.Stop()
 
-	       queryColor.Printf("Query: %s\n\n", query)
-	       responseColor.Println("Response:")
+		queryColor.Printf("Query: %s\n\n", query)
+		responseColor.Println("Response:")
 
-	       r, _ := glamour.NewTermRenderer(
-		       glamour.WithAutoStyle(),
-		       glamour.WithWordWrap(80),
-	       )
-	       rendered, _ := r.Render(response)
-	       fmt.Print(rendered)
+		r, _ := glamour.NewTermRenderer(
+			glamour.WithAutoStyle(),
+			glamour.WithWordWrap(80),
+		)
+		rendered, _ := r.Render(response)
+		fmt.Print(rendered)
 
-	       // Print stats in muted italic
-	       muted := color.New(color.FgHiBlack, color.Italic)
-	       var size string
-	       switch wordLimit {
-	       case 200:
-		       size = "tiny"
-	       case 600:
-		       size = "medium"
-	       case 1000:
-		       size = "large"
-	       default:
-		       size = "custom"
-	       }
-	       muted.Printf("\nStats: Response generated in %.1f seconds using %s for %s response.\n", elapsed.Seconds(), config.Model, size)
-       }
+		// Print stats in muted italic
+		muted := color.New(color.FgHiBlack, color.Italic)
+		var size string
+		switch wordLimit {
+		case 200:
+			size = "tiny"
+		case 600:
+			size = "medium"
+		case 1000:
+			size = "large"
+		default:
+			size = "custom"
+		}
+		muted.Printf("\nStats: Response generated in %.1f seconds using %s for %s response.\n", elapsed.Seconds(), config.Model, size)
+	}
 }

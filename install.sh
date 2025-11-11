@@ -7,7 +7,7 @@ set -e
 
 REPO_OWNER="atharva-again"
 REPO_NAME="q"
-VERSION="v1.0.1"
+VERSION="v1.1.0"
 ACTION="install" # install|update|uninstall
 
 while [[ $# -gt 0 ]]; do
