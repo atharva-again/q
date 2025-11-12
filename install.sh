@@ -21,7 +21,7 @@ set -e
 
 REPO_OWNER="atharva-again"
 REPO_NAME="q"
-VERSION="v1.1.0"
+VERSION="v1.2.0-beta"
 
 INSTALL_BIN="$HOME/.local/bin/q"
 INSTALL_DOCS="$HOME/.local/q"

@@ -21,9 +21,9 @@ A fast, minimalistc, and powerful command-line AI assistant that brings the powe
 - **Response Control**: Choose response length (tiny, medium, large)
 - **Cross-Platform**: Works on Linux, macOS, and Windows
 
-## Installation
+## Install, Update & Uninstall
 
-### Quick Install (Recommended)
+### Quick Method (Recommended)
 
 #### Linux/macOS
 
@@ -38,9 +38,10 @@ iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps
 ```
 
 This will:
-- Download the appropriate binary for your system
+- Download the appropriate binary for your system if none exists
 - Install it to your PATH
-- Run the initial setup wizard
+- If an installation exists, it will ask you whether to update or uninstall
+
 
 ### Manual Installation
 
@@ -75,38 +76,6 @@ cd q
 go build -o q .
 sudo mv q /usr/local/bin/
 q -S
-```
-
-## Update q
-
-To update to the latest version, run:
-
-### For Linux/macOS:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --update
-```
-
-### For Windows (PowerShell):
-
-```powershell
-iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action update"
-```
-
-## Uninstall q
-
-To uninstall q, run:
-
-### For Linux/macOS:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --uninstall
-```
-
-### For Windows (PowerShell):
-
-```powershell 
-iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action uninstall"
 ```
 
 ## Usage

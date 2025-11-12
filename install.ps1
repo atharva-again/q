@@ -18,7 +18,7 @@ Write-Host @"
 param(
     [string]$RepoOwner = "atharva-again",
     [string]$RepoName = "q",
-    [string]$Version = "v1.1.0"
+    [string]$Version = "v1.2.0-beta"
 )
 
 $installDir = "$env:LOCALAPPDATA\Programs\q"
