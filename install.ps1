@@ -58,7 +58,7 @@ try {
 # Notify if install exists
 if (Test-Path $installDir) {
     $existingFiles = Get-ChildItem $installDir
-    Write-Host "An installation already exists at $installDir:" -ForegroundColor Red
+    Write-Host "An installation already exists at ${installDir}:" -ForegroundColor Red
     $existingFiles | ForEach-Object { Write-Host $_.Name }
     while ($true) {
         $response = Read-Host "Do you want to overwrite it? (y/n)"
@@ -106,7 +106,7 @@ $zipPath = Join-Path $tmpDir $zipName
 try {
     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -ErrorAction Stop
 } catch {
-    Write-Host "Failed to download $zipName: $_" -ForegroundColor Red
+    Write-Host "Failed to download ${zipName}: $_" -ForegroundColor Red
     Remove-Item -Path $tmpDir -Recurse -Force
     exit 1
 }
