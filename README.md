@@ -1,6 +1,16 @@
 # q
 
-A fast, beautiful, and powerful command-line AI assistant that brings the power of AI directly to your terminal.
+A fast, minimalistc, and powerful command-line AI assistant that brings the power of LLMs directly to your terminal.
+
+<p align = "center">
+  <img width="600" height="400" alt="An image demonstrating q CLI query." src="https://github.com/user-attachments/assets/7f00ae57-4c3b-40c4-967b-3dbb96a4e8db" />
+  <img width="600" height="400" alt="An image demonstrating q CLI setup." src="https://github.com/user-attachments/assets/dd5e3785-407f-4d85-97c6-f85066e479ca" />
+</p>
+
+<p align = "center">
+  <img width="45%" alt="An image demonstrating q CLI query with -t flag." src="https://github.com/user-attachments/assets/4290b748-00f4-44a5-842a-af541fb53a35" />
+  <img width="45%" alt="An image demonstrating q CLI stats feature." src="https://github.com/user-attachments/assets/2fd5465f-c489-4480-ad91-7a8846528a41" />
+</p>
 
 ## Features
 
@@ -24,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | b
 #### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1 | iex
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) }"
 ```
 
 This will:
@@ -65,6 +75,38 @@ cd q
 go build -o q .
 sudo mv q /usr/local/bin/
 q -S
+```
+
+## Update q
+
+To update to the latest version, run:
+
+### For Linux/macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --update
+```
+
+### For Windows (PowerShell):
+
+```powershell
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action update"
+```
+
+## Uninstall q
+
+To uninstall q, run:
+
+### For Linux/macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --uninstall
+```
+
+### For Windows (PowerShell):
+
+```powershell 
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action uninstall"
 ```
 
 ## Usage

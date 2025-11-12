@@ -117,7 +117,7 @@ $zipPath = Join-Path $tmpDir $zipName
 try {
     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -ErrorAction Stop
 } catch {
-    Write-Host "Failed to download $zipName: $_" -ForegroundColor Red
+    Write-Host "Failed to download ${zipName}: $_" -ForegroundColor Red
     Remove-Item -Path $tmpDir -Recurse -Force
     exit 1
 }
