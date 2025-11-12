@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | b
 #### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1 | iex
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) }"
 ```
 
 This will:
@@ -75,6 +75,38 @@ cd q
 go build -o q .
 sudo mv q /usr/local/bin/
 q -S
+```
+
+## Update q
+
+To update to the latest version, run:
+
+### For Linux/macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --update
+```
+
+### For Windows (PowerShell):
+
+```powershell
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action update"
+```
+
+## Uninstall q
+
+To uninstall q, run:
+
+### For Linux/macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | bash --uninstall
+```
+
+### For Windows (PowerShell):
+
+```powershell 
+iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) } -Action uninstall"
 ```
 
 ## Usage

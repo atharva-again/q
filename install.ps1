@@ -42,7 +42,7 @@ if ($Action -eq "uninstall") {
     } else {
         Write-Host "No installation found at $installDir" -ForegroundColor Yellow
     }
-    exit 0
+    return
 }
 
 
