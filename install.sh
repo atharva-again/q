@@ -3,44 +3,30 @@
 # Install script for q CLI tool
 # Fetches the appropriate binary for q CLI tool and installs it.
 
+# ASCII Art for q
+cat << 'EOF'  
+          
+  /$$$$$$ 
+ /$$__  $$
+| $$  \ $$
+| $$  | $$
+|  $$$$$$$
+ \____  $$
+      | $$
+      | $$
+      |__/
+EOF
+
 set -e
 
 REPO_OWNER="atharva-again"
 REPO_NAME="q"
 VERSION="v1.1.0"
-ACTION="install" # install|update|uninstall
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --uninstall)
-            ACTION="uninstall"
-            shift
-            ;;
-        --update)
-            ACTION="update"
-            shift
-            ;;
-        --version)
-            VERSION="$2"
-            shift 2
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
 
 INSTALL_BIN="$HOME/.local/bin/q"
 INSTALL_DOCS="$HOME/.local/q"
 
-if [[ "$ACTION" == "uninstall" ]]; then
-    rm -rf "$INSTALL_BIN"
-    rm -rf "$INSTALL_DOCS"
-    printf "\033[1;32mUninstalled q from $INSTALL_BIN and $INSTALL_DOCS\033[0m\n"
-    exit 0
-fi
-
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
 case $OS in
@@ -100,23 +86,36 @@ if [ ${#missing_deps[@]} -gt 0 ]; then
 fi
 
 if [[ -f "$INSTALL_BIN" || -d "$INSTALL_DOCS" ]]; then
-    printf "\033[1;31mAn installation already exists. The binary is at $INSTALL_BIN and the docs are at $INSTALL_DOCS:\033[0m\n"
+    # Existing installation, show menu
+    printf "\033[1;31mq ($VERSION) already exists. The binary is at $INSTALL_BIN and the docs are at $INSTALL_DOCS:\033[0m\n"
+    echo ""
+    echo "Choose an option:"
+    echo "1. Update (overwrite existing)"
+    echo "2. Uninstall"
+    echo "3. Cancel"
     while true; do
-        read -p "Do you want to overwrite it? (y/n): " response
-        if [[ -z "$response" ]]; then
-            response="y"
-        fi
-        if [[ "$response" == "y" || "$response" == "Y" ]]; then
-            break
-        elif [[ "$response" == "n" || "$response" == "N" ]]; then
-            printf "\033[1;31mAborting installation.\033[0m\n"
-            exit 1
-        else
-            printf "\033[1;31mInvalid input. Please enter y or n.\033[0m\n"
-        fi
+        read -r -p "Enter choice (1-3): " choice < /dev/tty
+        case $choice in
+            1)
+                rm -rf "$INSTALL_BIN"
+                rm -rf "$INSTALL_DOCS"
+                break
+                ;;
+            2)
+                rm -rf "$INSTALL_BIN"
+                rm -rf "$INSTALL_DOCS"
+                printf "\033[1;32mUninstalled q ($VERSION) from $INSTALL_BIN and $INSTALL_DOCS\033[0m\n"
+                exit 0
+                ;;
+            3)
+                printf "\033[1;31mInstallation cancelled.\033[0m\n"
+                exit 1
+                ;;
+            *)
+                printf "\033[1;31mInvalid choice. Please enter 1, 2, or 3.\033[0m\n"
+                ;;
+        esac
     done
-    rm -rf "$INSTALL_BIN"
-    rm -rf "$INSTALL_DOCS"
 fi
 
 mkdir -p "$INSTALL_DOCS"
@@ -124,6 +123,10 @@ mkdir -p "$(dirname $INSTALL_BIN)"
 
 echo "Detected OS: $OS, Arch: $ARCH"
 echo ""
+
+TMPDIR=$(mktemp -d)
+cd "$TMPDIR"
+
 echo "Downloading $ZIP_NAME from $DOWNLOAD_URL..."
 
 # Download the zip
@@ -136,7 +139,6 @@ else
     exit 1
 fi
 
-        TMPDIR=$(mktemp -d)
 echo ""
 
 # Download checksums
@@ -195,6 +197,9 @@ done
 echo ""
 rm "$ZIP_NAME"
 
+cd /
+rmdir "$TMPDIR"
+
 # Add to PATH if not already
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     echo "export PATH=\"$HOME/.local/bin:$PATH\"" >> "$HOME/.bashrc"
@@ -208,6 +213,6 @@ echo "Binary installed to $INSTALL_BIN"
 echo "Documentation and additional files installed to $INSTALL_DOCS"
 echo ""
 
-printf "\033[1;32mInstalled q. Restart your shell or run 'source ~/.bashrc' and then run q -s to start setup\033[0m\n"
+printf "\033[1;32mInstalled q ($VERSION). Restart your shell or run 'source ~/.bashrc' and then run q -s to start setup\033[0m\n"
 echo ""
 echo "For any issues, suggestions, or feature requests, please check https://github.com/${REPO_OWNER}/${REPO_NAME}"

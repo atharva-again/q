@@ -1,12 +1,24 @@
 # Install script for q CLI tool (Windows/Powershell version)
 # Fetches the appropriate binary for Windows and installs it.
 
+# ASCII Art for q
+Write-Host @"
+             
+  /$$$$$$ 
+ /$$__  $$
+| $$  \ $$
+| $$  | $$
+|  $$$$$$$
+ \____  $$
+      | $$
+      | $$
+      |__/
+"@
 
 param(
     [string]$RepoOwner = "atharva-again",
     [string]$RepoName = "q",
-    [string]$Version = "v1.1.0",
-    [string]$Action = "install" # install|update|uninstall
+    [string]$Version = "v1.1.0"
 )
 
 $installDir = "$env:LOCALAPPDATA\Programs\q"
@@ -34,17 +46,37 @@ if ($missingDeps.Count -gt 0) {
     exit 1
 }
 
-# Uninstall logic
-if ($Action -eq "uninstall") {
-    if (Test-Path $installDir) {
-        Remove-Item -Path $installDir -Recurse -Force
-        Write-Host "Uninstalled q from $installDir" -ForegroundColor Green
-    } else {
-        Write-Host "No installation found at $installDir" -ForegroundColor Yellow
+if (Test-Path $installDir) {
+    # Existing installation, show menu
+    
+    Write-Host "q ($Version) already exists. The binary is at $installDir and the docs are at $installDir" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Choose an option:"
+    Write-Host "1. Update (overwrite existing)"
+    Write-Host "2. Uninstall"
+    Write-Host "3. Cancel"
+    while ($true) {
+        $choice = Read-Host "Enter choice (1-3)"
+        switch ($choice) {
+            1 {
+                Remove-Item -Path $installDir -Recurse -Force
+                break
+            }
+            2 {
+                Remove-Item -Path $installDir -Recurse -Force
+                Write-Host "Uninstalled q ($Version) from $installDir" -ForegroundColor Green
+                exit 0
+            }
+            3 {
+                Write-Host "Installation cancelled." -ForegroundColor Red
+                exit 1
+            }
+            default {
+                Write-Host "Invalid choice. Please enter 1, 2, or 3." -ForegroundColor Red
+            }
+        }
     }
-    exit 0
 }
-
 
 # Check if version exists
 $versionUrl = "https://github.com/$RepoOwner/$RepoName/releases/tag/$Version"
@@ -55,27 +87,6 @@ try {
     exit 1
 }
 
-# Notify if install exists
-if (Test-Path $installDir) {
-    $existingFiles = Get-ChildItem $installDir
-    Write-Host "An installation already exists at $installDir:" -ForegroundColor Red
-    $existingFiles | ForEach-Object { Write-Host $_.Name }
-    while ($true) {
-        $response = Read-Host "Do you want to overwrite it? (y/n)"
-        if ([string]::IsNullOrWhiteSpace($response)) {
-            $response = "y"
-        }
-        if ($response -eq "y" -or $response -eq "Y") {
-            break
-        } elseif ($response -eq "n" -or $response -eq "N") {
-            Write-Host "Aborting installation." -ForegroundColor Red
-            exit 1
-        } else {
-            Write-Host "Invalid input. Please enter y or n." -ForegroundColor Red
-        }
-    }
-    Remove-Item -Path $installDir -Recurse -Force
-}
 New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 
 # Detect architecture
@@ -199,7 +210,7 @@ if ($userPath -notlike "*$installDir*") {
 Write-Host ""; Write-Host "Install Summary:" -ForegroundColor Cyan
 Write-Host "Installed binary and docs to: $installDir"
 Write-Host ""
-Write-Host "Installed q. Restart Powershell or Command Prompt and then run q -s to start setup" -ForegroundColor Green
+Write-Host "Installed q ($Version). Restart Powershell or Command Prompt and then run q -s to start setup" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "For any issues, suggestions, or feature requests, please check https://github.com/$RepoOwner/$RepoName"

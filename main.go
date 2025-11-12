@@ -24,6 +24,22 @@ import (
 	"google.golang.org/genai"
 )
 
+// Version of the q CLI tool. Set via build flags: go build -ldflags "-X main.Version=v1.1.0"
+var Version = "v1.1.0"
+
+const asciiArt = `
+
+  /$$$$$$ 
+ /$$__  $$
+| $$  \ $$
+| $$  | $$
+|  $$$$$$$
+ \____  $$
+      | $$
+      | $$
+      |__/
+`
+
 type Config struct {
 	Provider      string `json:"provider"`
 	Model         string `json:"model"`
@@ -151,6 +167,8 @@ func printSuccess(message string) {
 func runSetup() *Config {
 	reader := bufio.NewReader(os.Stdin)
 
+	fmt.Print(asciiArt)
+	fmt.Println()
 	welcomeColor.Println("Welcome to q setup!")
 	fmt.Println()
 
@@ -393,19 +411,23 @@ func queryOpenAI(apiKey, model, query string, wordLimit int) (string, error) {
 }
 
 func printHelp() {
-	fmt.Println("q - A command-line AI assistant")
+	fmt.Print(asciiArt)
+	fmt.Println()
+	welcomeColor.Println("q - A command-line AI assistant")
 	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Printf("  %s [query] [flags]\n", os.Args[0])
 	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("  -h, -H, -help      Show help")
+	fmt.Println("  -v, -V, --version  Show version information")
 	fmt.Println("  -S, -s, -setup     Run setup to configure preferences")
 	fmt.Println("  -t, -T, -tiny      Keep responses short")
 	fmt.Println("  -m, -M, -medium    Keep responses medium")
 	fmt.Println("  -l, -L, -large     Keep responses large")
 	fmt.Println()
 	fmt.Println("Examples:")
+	fmt.Printf("  %s --version\n", os.Args[0])
 	fmt.Printf("  %s What is the capital of India?\n", os.Args[0])
 	fmt.Printf("  %s What is the role of Jack Dorsey in Twitter? -l\n", os.Args[0])
 	fmt.Printf("  %s -S\n", os.Args[0])
@@ -417,6 +439,7 @@ func main() {
 	var tiny bool
 	var medium bool
 	var large bool
+	var showVersion bool
 
 	// Manual argument parsing to allow flags after query
 	args := os.Args[1:]
@@ -425,6 +448,8 @@ func main() {
 		switch arg {
 		case "-h", "-H", "-help":
 			help = true
+		case "-v", "-V", "--version":
+			showVersion = true
 		case "-S", "-s", "-setup":
 			setup = true
 		case "-t", "-T", "-tiny":
@@ -440,6 +465,13 @@ func main() {
 			}
 			queryParts = append(queryParts, arg)
 		}
+	}
+
+	if showVersion {
+		fmt.Print(asciiArt)
+		fmt.Println()
+		fmt.Println(Version)
+		os.Exit(0)
 	}
 
 	if help {
