@@ -1,19 +1,15 @@
 # Install script for q CLI tool (Windows/Powershell version)
 # Fetches the appropriate binary for Windows and installs it.
 
-# ASCII Art for q
-Write-Host @"
-             
-  /$$$$$$ 
- /$$__  $$
-| $$  \ $$
-| $$  | $$
-|  $$$$$$$
- \____  $$
-      | $$
-      | $$
-      |__/
-"@
+# ASCII Art for q (use single-quoted here-string to avoid variable interpolation)
+$logo = @'    
+  ______
+ / ____/
+< <_|  |
+ \__   |
+    |__|
+'@
+Write-Host $logo
 
 $RepoOwner = "atharva-again"
 $RepoName = "q"
@@ -41,7 +37,8 @@ if ($missingDeps.Count -gt 0) {
     Write-Host "- Invoke-WebRequest: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest" -ForegroundColor Cyan
     Write-Host "- Expand-Archive: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.archive/expand-archive" -ForegroundColor Cyan
     Write-Host "- Get-FileHash: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-filehash" -ForegroundColor Cyan
-    exit 1
+    # Don't exit the user's shell; return from the script instead
+    return
 }
 
 if (Test-Path $installDir) {
@@ -53,21 +50,42 @@ if (Test-Path $installDir) {
     Write-Host "1. Update (overwrite existing)"
     Write-Host "2. Uninstall"
     Write-Host "3. Cancel"
-    while ($true) {
+    $continueMenu = $true
+    while ($continueMenu) {
         $choice = Read-Host "Enter choice (1-3)"
         switch ($choice) {
             1 {
-                Remove-Item -Path $installDir -Recurse -Force
+                if (Test-Path $installDir) {
+                    try {
+                        Remove-Item -Path $installDir -Recurse -Force -ErrorAction Stop
+                        Write-Host "Removed existing installation at $installDir" -ForegroundColor Yellow
+                    } catch {
+                        Write-Host "Warning: failed to remove ${installDir}: $_" -ForegroundColor Yellow
+                        # continue anyway to attempt overwrite
+                    }
+                } else {
+                    Write-Host "Note: install directory $installDir not found, proceeding with fresh install." -ForegroundColor Yellow
+                }
+                # exit menu and continue with installation
+                $continueMenu = $false
                 break
             }
             2 {
-                Remove-Item -Path $installDir -Recurse -Force
-                Write-Host "Uninstalled q ($Version) from $installDir" -ForegroundColor Green
-                exit 0
+                if (Test-Path $installDir) {
+                    try {
+                        Remove-Item -Path $installDir -Recurse -Force -ErrorAction Stop
+                        Write-Host "Uninstalled q ($Version) from $installDir" -ForegroundColor Green
+                    } catch {
+                        Write-Host "Failed to uninstall ${installDir}: $_" -ForegroundColor Yellow
+                    }
+                } else {
+                    Write-Host "Install directory $installDir not found; nothing to uninstall." -ForegroundColor Yellow
+                }
+                return
             }
             3 {
                 Write-Host "Installation cancelled." -ForegroundColor Red
-                exit 1
+                return
             }
             default {
                 Write-Host "Invalid choice. Please enter 1, 2, or 3." -ForegroundColor Red
@@ -82,7 +100,8 @@ try {
     $resp = Invoke-WebRequest -Uri $versionUrl -Method Head -ErrorAction Stop
 } catch {
     Write-Host "Version $Version does not exist on GitHub. Aborting." -ForegroundColor Red
-    exit 1
+    # Return instead of exiting the user's shell
+    return
 }
 
 New-Item -ItemType Directory -Path $installDir -Force | Out-Null
@@ -94,7 +113,8 @@ switch ($arch) {
     "arm64" { $arch = "arm64" }
     default {
         Write-Host "Unsupported architecture: $arch"
-        exit 1
+        # Return instead of exiting the user's shell
+        return
     }
 }
 
@@ -116,8 +136,8 @@ try {
     Invoke-WebRequest -Uri $downloadUrl -OutFile $zipPath -ErrorAction Stop
 } catch {
     Write-Host "Failed to download ${zipName}: $_" -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 }
 
 Write-Host ""
@@ -130,8 +150,8 @@ try {
     Invoke-WebRequest -Uri $checksumUrl -OutFile $checksumFile -ErrorAction Stop
 } catch {
     Write-Host "Failed to download checksums: $_" -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 }
 
 # Verify checksum
@@ -145,14 +165,14 @@ Get-Content $checksumFile | ForEach-Object {
 }
 if ($null -eq $expectedHash) {
     Write-Host "Checksum for $zipName not found in SHA256SUMS. Aborting." -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 }
 $actualHash = (Get-FileHash -Path $zipPath -Algorithm SHA256).Hash
 if ($actualHash -ne $expectedHash) {
     Write-Host "Checksum verification failed! Expected: $expectedHash, Got: $actualHash" -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 } else {
     Write-Host "Checksum verification passed."
 }
@@ -168,8 +188,8 @@ try {
     Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 } catch {
     Write-Host "Failed to extract: $_" -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 }
 
 Write-Host ""
@@ -180,8 +200,8 @@ if (Test-Path $binaryPath) {
     Move-Item -Path $binaryPath -Destination (Join-Path $installDir $binaryName) -Force
 } else {
     Write-Host "Binary $binaryName not found after extraction. Aborting." -ForegroundColor Red
-    Remove-Item -Path $tmpDir -Recurse -Force
-    exit 1
+    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
 }
 Get-ChildItem -Path $extractDir | ForEach-Object {
     if ($_.Name -ne $binaryName) {

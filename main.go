@@ -180,6 +180,7 @@ func runSetup() *Config {
 
 	// Choose provider
 	var provider string
+	providerChanged := false
 	titleCaser := cases.Title(language.Und)
 	if existingConfig != nil {
 		choiceColor.Printf("Current provider: %s\n", titleCaser.String(existingConfig.Provider))
@@ -196,6 +197,7 @@ func runSetup() *Config {
 			}
 			choice = getValidatedChoice(reader, providers, fmt.Sprintf("Enter choice (1-%d): ", len(providers)))
 			provider = providers[choice-1]
+			providerChanged = true
 		}
 	} else {
 		fmt.Println("Choose your AI provider:")
@@ -272,7 +274,9 @@ func runSetup() *Config {
 
 	// Enter API key
 	var apiKey string
-	if existingConfig != nil && existingConfig.APIKey != "" {
+	// If we have an existing config and the provider was NOT changed and the API key exists,
+	// allow keeping the current key. If the provider changed, force entering and validating a new key.
+	if existingConfig != nil && existingConfig.APIKey != "" && !providerChanged && existingConfig.Provider == provider {
 		choiceColor.Printf("Current API key: %s\n", maskKey(existingConfig.APIKey))
 		fmt.Println("API key:")
 		fmt.Println("  1. Keep current")
@@ -284,6 +288,7 @@ func runSetup() *Config {
 			apiKey = promptAndValidateAPIKey(reader, provider, model)
 		}
 	} else {
+		// No existing key or provider changed -> must enter a new API key
 		apiKey = promptAndValidateAPIKey(reader, provider, model)
 	}
 

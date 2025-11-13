@@ -12,7 +12,7 @@ A fast, minimalistc, and powerful command-line AI assistant that brings the powe
   <img width="45%" alt="An image demonstrating q CLI stats feature." src="https://github.com/user-attachments/assets/2fd5465f-c489-4480-ad91-7a8846528a41" />
 </p>
 
-## Features
+## Features 
 
 - **Fast & Lightweight**: Minimal dependencies, quick responses
 - **Beautiful Output**: Rich markdown rendering with syntax highlighting
@@ -34,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/atharva-again/q/main/install.sh | b
 #### Windows (PowerShell)
 
 ```powershell
-iex "& { $(irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1) }"
+irm https://raw.githubusercontent.com/atharva-again/q/main/install.ps1 | iex
 ```
 
 This will:
