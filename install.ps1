@@ -15,11 +15,9 @@ Write-Host @"
       |__/
 "@
 
-param(
-    [string]$RepoOwner = "atharva-again",
-    [string]$RepoName = "q",
-    [string]$Version = "v1.2.0-beta"
-)
+$RepoOwner = "atharva-again"
+$RepoName = "q"
+$Version = "v1.2.0-beta"
 
 $installDir = "$env:LOCALAPPDATA\Programs\q"
 $tmpDir = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.Guid]::NewGuid().ToString())
