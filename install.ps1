@@ -13,7 +13,7 @@ Write-Host $logo
 
 $RepoOwner = "atharva-again"
 $RepoName = "q"
-$Version = "v1.2.0-beta"
+$Version = "v1.2.1-beta"
 
 $installDir = "$env:LOCALAPPDATA\Programs\q"
 $tmpDir = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.Guid]::NewGuid().ToString())
@@ -37,13 +37,13 @@ if ($missingDeps.Count -gt 0) {
     Write-Host "- Invoke-WebRequest: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest" -ForegroundColor Cyan
     Write-Host "- Expand-Archive: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.archive/expand-archive" -ForegroundColor Cyan
     Write-Host "- Get-FileHash: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-filehash" -ForegroundColor Cyan
-    # Don't exit the user's shell; return from the script instead
     return
 }
 
 if (Test-Path $installDir) {
     # Existing installation, show menu
     
+    Write-Host ""
     Write-Host "q ($Version) already exists. The binary is at $installDir and the docs are at $installDir" -ForegroundColor Red
     Write-Host ""
     Write-Host "Choose an option:"
