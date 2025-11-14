@@ -1,6 +1,6 @@
 # q
 
-A fast, minimalistc, and powerful command-line AI assistant that brings the power of LLMs directly to your terminal.
+A fast, minimalistc, and powerful command-line AI assistant that brings the power of LLMs directly to your terminal. Just BYOK (Bring Your Own Key) and get started. 
 
 <p align = "center">
   <img width="600" height="400" alt="An image demonstrating q CLI query." src="https://github.com/user-attachments/assets/7f00ae57-4c3b-40c4-967b-3dbb96a4e8db" />
@@ -83,20 +83,20 @@ q -S
 ### Basic Query
 
 ```bash
-q "What is the capital of India?"
+q What is the capital of India?
 ```
 
 ### Response Length Options
 
 ```bash
 # Short responses
-q -t "Explain quantum computing"
+q Explain quantum computing -t
 
 # Medium responses (default)
-q -m "How does photosynthesis work?"
+q -m How does photosynthesis work? -m
 
 # Detailed responses
-q -l "Write a comprehensive guide to Docker"
+q Write a comprehensive guide to Docker -l
 ```
 
 ### Help
@@ -125,34 +125,17 @@ Example config:
 ## Supported Models
 
 ### Google Gemini
-- `gemini-2.5-flash` (Fast, recommended)
-- `gemini-2.5-pro` (Most capable)
-- `gemini-2.0-flash` (Legacy)
+- `gemini-2.5-flash` 
+- `gemini-2.5-pro` 
+- `gemini-2.0-flash` 
+- `gemini-2.5-flash-lite`
+- `gemini-2.0-flash-lite`
 
 ### OpenAI
-- `gpt-5` (Latest GPT-5)
-- `gpt-5-mini` (Fast, cost-effective)
-- `gpt-5-nano` (Fastest, cheapest)
-- `gpt-4.1` (Legacy GPT-4.1)
-
-## Examples
-
-```bash
-# Quick facts
-q "What is the population of Tokyo?"
-
-# Code explanations
-q "Explain how recursion works in Python"
-
-# Creative writing
-q -l "Write a short story about a robot learning emotions"
-
-# Technical questions
-q "How do I optimize a PostgreSQL query?"
-
-# Learning
-q -m "Explain the concept of containerization"
-```
+- `gpt-5` 
+- `gpt-5-mini` 
+- `gpt-5-nano` 
+- `gpt-4.1`
 
 ## Development
 
