@@ -13,7 +13,7 @@ Write-Host $logo
 
 $RepoOwner = "atharva-again"
 $RepoName = "q"
-$Version = "v1.2.1-beta"
+$Version = "v1.2.1"
 
 $installDir = "$env:LOCALAPPDATA\Programs\q"
 $tmpDir = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.Guid]::NewGuid().ToString())
